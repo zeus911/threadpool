@@ -1,0 +1,173 @@
+package lbs.da.openservice;
+
+option py_generic_services = true;
+/*
+ * 所有请求需要加上鉴权头，暂时预留不做处理
+ */
+ message RequestHeader {
+    required string servicekey = 1; //区分来源，
+    required string secretkey = 2; //来源的验证
+    required string subservice = 3; //区分子来源
+}
+/*
+ * 所有用户偏好名
+ */
+ message UserPreferenceTags {
+    repeated string values = 1;
+}
+
+message UserPreference {
+    required string tag = 1;
+    optional int32 level = 2; //无此字段表示查找失败
+    optional float value = 3; //无此字段表示查找失败
+    optional UserPreferenceSourceType srcType = 4;
+}
+
+/*
+ *  用户偏好来源类型
+ */
+ enum UserPreferenceSourceType {
+    MAP_CATEGORY = 0;  //地图-类目
+    MAP_PRICE = 1;  //地图-价格
+    MAP_BRAND = 2;  //地图-品牌
+
+    TUANGOU_CATEGORY = 10;  //团购-类目
+    TUANGOU_PRICE = 11;  //团购-价格
+    TUANGOU_BRAND = 12;  //团购-品牌
+}
+
+message GetUserPreferenceRequest {
+    required RequestHeader header = 1;
+    required string cuid = 2;
+    repeated UserPreferenceSourceType srcType = 3;
+    repeated string include_tag = 4; //若tagname为空，则取所有偏好
+    repeated string exclude_tag = 5;  
+}
+
+message GetUserPreferenceResponse {
+    repeated UserPreference values = 1;
+}
+/*
+  *用户轨迹状态
+ */
+enum UserTrajStatus {
+    HOME_STATUS = 0;
+    COMPANY_STATUS = 1;
+    AREA_STATUS = 2;
+    LOCAL_STATUS = 3;
+    EWORK_STATUS = 4;   //E开头状态标识为外地
+    ETRAVEL_STATUS = 5;
+    EFAMILY_STATUS = 6;
+    ELOW_STATUS = 7;
+    EHIGH_STATUS = 8;
+    ENEW_STATUS = 9;
+    UNKNOW_STATUS = 100;
+}
+/*
+ *  常驻点
+ */
+message RegularStayPoint {
+    required UserTrajStatus type = 1;
+    required double longitude = 2;        //经度
+    required double latitude = 3;         //维度
+    optional double radius = 4;           //半径
+    optional int32 areaid = 5;
+}
+
+message GetRegularStayPointRequest {
+    required RequestHeader header = 1;
+    required string cuid = 2;
+    repeated UserTrajStatus type = 3; //指定类型
+}
+
+message GetRegularStayPointResponse {
+    repeated RegularStayPoint value = 1;
+}
+
+message Item {
+    required string id = 1;
+    repeated double value = 2;
+}
+
+message GetItemsByItemRequest {
+    required RequestHeader header = 1;
+    /*
+     * algorithmId取下面19种，含义另有接口文档定义
+     * rule_sim_poi
+     * rule_sim_td   //团单
+     * rule_sim_br    //品牌
+     * rule_rev_poi
+     * rule_rev_td    //团单
+     * rule_rev_br    //品牌
+     * rule_sr_poi
+     * rule_sr_td   //团单
+     * rule_sr_br    //品牌
+     * topic_sim_poi
+     * topic_sim_td   //团单
+     * topic_sim_br    //品牌
+     * topic_rev_poi
+     * topic_rev_td    //团单
+     * topic_rev_br    //品牌
+     * topic_sr_poi
+     * topic_sr_td    //团单
+     * topic_sr_br    //品牌
+     * lda_ar
+     */
+    required string algorithmId = 2;
+    repeated string item_ids = 3;   //可指定多个item id
+
+}
+
+message GetItemsByItemResponse {
+    repeated Item items = 1;
+}
+
+message GetItemsByUserRequest {
+    required RequestHeader header = 1;
+    required string algorithmId = 2;
+    required string cuid = 3;
+    repeated string item_ids = 4;
+}
+
+message GetItemsByUserResponse {
+    repeated string item_ids = 1;
+}
+
+//实时用户状态信息
+
+message GetLatestUserTrajRequest{
+    required RequestHeader header = 1;
+    required string cuid = 2;
+}
+message GetLatestUserTrajResponse{
+    optional UserTrajStatus status = 1;   //状态
+    optional bool   is_sticked = 2;       //是否停留
+    optional double longitude = 3;        //经度
+    optional double latitude = 4;         //维度
+    optional int64  start_time = 5;       //开始时间， unix秒时间戳
+    optional int64  update_time = 6;      //最近更新时间， unix秒时间戳
+    optional int32  staytime = 7;         //停留时长
+}
+
+service UserService {
+      /*
+       * 返回所有用户指定偏好取值
+      */
+      rpc GetUserPreference (GetUserPreferenceRequest) returns (GetUserPreferenceResponse);
+      /*
+       * 返回指定用户（imei）的常驻点信息，若携带type指定类型，则返回结果为指定类型的常驻点，否则返回所有常驻点
+      */
+      rpc GetUserRegularStayPoint (GetRegularStayPointRequest) returns (GetRegularStayPointResponse);
+     
+      /*
+       * 返回指定用户（cuid）的实时轨迹信息
+       */
+      rpc GetLatestUserTrajStatus(GetLatestUserTrajRequest)returns(GetLatestUserTrajResponse);
+};
+
+service ItemService {
+    /*
+       * 根据指定item id获取item列表（排序后）
+       */
+    rpc GetItemsByItem (GetItemsByItemRequest) returns (GetItemsByItemResponse); 
+};

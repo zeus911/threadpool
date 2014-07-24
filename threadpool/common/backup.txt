@@ -1,0 +1,2 @@
+sql="""insert into tbl_task_submit(id,task_id,type,starttime,endtime,status,event_day,submit_by,submit_time)
+                values(NULL,"""+task_id+""",'"""+task_type+"""','"""+starttime+"""','"""+endtime+"""',"""+status+""",'"""+task_day+"""','"""+submit_by+"""','"""+now+"""');"""
