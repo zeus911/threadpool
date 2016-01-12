@@ -4,15 +4,15 @@ from logLib import *
 import datetime
 
 import MySQLdb
-host='db-rd-bu-09-da01.db01.baidu.com'
-user='upp'
-passwd='assessment'
-db='db_badcase'
+host='xxx'
+user='xxx'
+passwd='xxx'
+db='xxx'
 port=3306
 
-'''host='cq01-rdqa-pool094.cq01.baidu.com'
+'''host='xxx'
 user='root'
-passwd='Admin@123'
+passwd='xxx'
 db='db_badcase'
 port=33306'''
 
